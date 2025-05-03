@@ -6,6 +6,7 @@ import com.recruitment.userservice.logic.api.UserService;
 import com.recruitment.userservice.security.JwtService;
 import com.recruitment.userservice.service.rest.exception.BadRequestException;
 import com.recruitment.userservice.service.rest.exception.ResourceNotFoundException;
+import com.recruitment.userservice.to.AuthDTOs;
 import com.recruitment.userservice.to.AuthDTOs.AuthResponse;
 import com.recruitment.userservice.to.AuthDTOs.LoginRequest;
 import com.recruitment.userservice.to.AuthDTOs.PasswordChangeRequest;
@@ -50,6 +51,10 @@ public class UserServiceImpl implements UserService {
 
         UserEntity savedUser = userRepository.save(user);
 
+        return getAuthResponse(savedUser);
+    }
+
+    private AuthResponse getAuthResponse(UserEntity savedUser) {
         String token = jwtService.generateToken(
                 new org.springframework.security.core.userdetails.User(
                         savedUser.getEmail(),
@@ -78,19 +83,7 @@ public class UserServiceImpl implements UserService {
             UserEntity user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-            String token = jwtService.generateToken(
-                    new org.springframework.security.core.userdetails.User(
-                            user.getEmail(),
-                            user.getPassword(),
-                            List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
-                    )
-            );
-
-            return AuthResponse.builder()
-                    .token(token)
-                    .userId(user.getId())
-                    .role(user.getRole())
-                    .build();
+            return getAuthResponse(user);
         } else {
             throw new BadRequestException("Invalid credentials");
         }

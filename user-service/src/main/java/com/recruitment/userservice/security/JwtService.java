@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.Base64;
 
 @Service
 public class JwtService {
@@ -70,7 +71,7 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
-        byte[] keyBytes = secretKey.getBytes();
-        return Keys.hmacShaKeyFor(keyBytes);
+        // Use Keys.secretKeyFor to generate a secure key for HS256
+        return Keys.secretKeyFor(SignatureAlgorithm.HS256);
     }
 }
