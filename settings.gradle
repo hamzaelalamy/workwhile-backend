@@ -1,0 +1,6 @@
+rootProject.name = 'recruitment-platform'
+
+include 'user-service'
+include 'candidate-service'
+include 'discovery-server'
+include 'config-server'
