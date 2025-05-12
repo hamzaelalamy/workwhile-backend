@@ -112,20 +112,19 @@ public class JobServiceImpl implements JobService {
      */
     @Override
     public JobDTO updateJob(String id, JobPostingRequest request) {
-        // Validate request
-        validateJobRequest(request);
-        
-        // Find existing job
+        // The controller already checks ownership, but it's good to have a backup check
         JobEntity jobEntity = jobRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found with id: " + id));
-        
-        // Update fields
+
+        if (!jobEntity.getRecruiterId().equals(request.getRecruiterId())) {
+            throw new AccessDeniedException("You can only update your own job postings");
+        }
+
         updateEntityFromRequest(jobEntity, request);
-        
-        // Save changes
         JobEntity updatedJob = jobRepository.save(jobEntity);
         return mapToDTO(updatedJob);
     }
+
 
     /**
      * Delete a job by its ID
