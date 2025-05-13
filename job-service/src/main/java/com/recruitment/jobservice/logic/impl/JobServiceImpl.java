@@ -106,7 +106,7 @@ public class JobServiceImpl implements JobService {
     /**
      * Update an existing job
      *
-     * @param id The ID of the job to update
+     * @param id      The ID of the job to update
      * @param request The updated job data
      * @return The updated job as a DTO
      * @throws RuntimeException if no job with the given ID exists
@@ -352,7 +352,7 @@ public class JobServiceImpl implements JobService {
     /**
      * Update a job entity with data from a job posting request
      *
-     * @param entity The entity to update
+     * @param entity  The entity to update
      * @param request The request with new data
      */
     private void updateEntityFromRequest(JobEntity entity, JobPostingRequest request) {

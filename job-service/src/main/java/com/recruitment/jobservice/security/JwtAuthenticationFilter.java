@@ -31,33 +31,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
-        
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
-        
+
         final String jwt = authHeader.substring(7);
         final String userId = jwtService.extractUserId(jwt);
         final String role = jwtService.extractRole(jwt);
-        
+
         if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             // Create authorities based on role
             List<SimpleGrantedAuthority> authorities = Collections.singletonList(
                     new SimpleGrantedAuthority("ROLE_" + role)
             );
-            
+
             // Create authentication token
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                     userId,
                     null,
                     authorities
             );
-            
+
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
-        
+
         filterChain.doFilter(request, response);
     }
 }

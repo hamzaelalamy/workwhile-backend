@@ -26,6 +26,7 @@ repositories {
 ext {
     springCloudVersion = "2024.0.1"
     lombokVersion = "1.18.30"
+    logbackEncoderVersion = "7.4"
     mapstructVersion = "1.5.5.Final"
 }
 
@@ -34,27 +35,30 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jersey'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Add these specific Jersey dependencies - match exactly the user-service configuration
     implementation 'org.glassfish.jersey.core:jersey-client:3.1.10'
     implementation 'org.glassfish.jersey.inject:jersey-hk2:3.1.10'
     implementation 'org.glassfish.jersey.connectors:jersey-apache-connector:3.1.10'
+
+    // Also add webflux which might be used by Spring Cloud
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-
-    // Spring Cloud
-    implementation 'org.springframework.cloud:spring-cloud-starter-config'
-    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-
-    // JWT
+// JWT Dependencies
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    // Keep your existing Spring Cloud configuration
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    // Add this to your dependencies section
+    implementation 'org.springframework.boot:spring-boot-starter-security'
 
     // API Documentation
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
     // Utilities
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
@@ -70,7 +74,6 @@ dependencies {
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring30x:4.9.3'
 }
 
