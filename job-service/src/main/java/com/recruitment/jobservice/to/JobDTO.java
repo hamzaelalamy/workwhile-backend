@@ -1,12 +1,9 @@
-package com.recruitment.jobservice.dataaccess.entities;
+package com.recruitment.jobservice.to;
 
-import com.recruitment.jobservice.to.JobDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,20 +12,17 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "jobs")
-public class JobEntity {
+public class JobDTO {
 
-    @Id
     private String id;
-
     private String title;
     private String description;
     private String company;
     private String location;
     private String recruiterId;
-    private JobDTO.JobType jobType;
-    private JobDTO.WorkplaceType workplaceType;
-    private JobDTO.ExperienceLevel experienceLevel;
+    private JobType jobType;
+    private WorkplaceType workplaceType;
+    private ExperienceLevel experienceLevel;
     private List<String> requirements;
     private String salaryMin;
     private String salaryMax;
@@ -45,5 +39,17 @@ public class JobEntity {
     public static class Benefit {
         private String name;
         private String description;
+    }
+
+    public enum JobType {
+        FULL_TIME, PART_TIME, CONTRACT, TEMPORARY, INTERNSHIP
+    }
+
+    public enum WorkplaceType {
+        REMOTE, ONSITE, HYBRID
+    }
+
+    public enum ExperienceLevel {
+        ENTRY_LEVEL, MID_LEVEL, SENIOR, EXECUTIVE
     }
 }

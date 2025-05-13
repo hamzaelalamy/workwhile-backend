@@ -1,28 +1,10 @@
-buildscript {
-    ext {
-        springBootVersion = '3.4.5'
-    }
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-    }
-}
-
 plugins {
     id 'java'
-    id 'maven-publish'
     id 'org.springframework.boot' version '3.4.5'
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
-apply plugin: 'idea'
-apply plugin: 'java'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'jacoco'
-
-group = 'com.recruitment'
+group = 'com.workwhile'
 version = '0.0.1-SNAPSHOT'
 
 java {
@@ -44,38 +26,32 @@ repositories {
 ext {
     springCloudVersion = "2024.0.1"
     lombokVersion = "1.18.30"
-    logbackEncoderVersion = "7.4"
     mapstructVersion = "1.5.5.Final"
-    jjwtVersion = "0.11.5"
 }
 
 dependencies {
-    // Spring Boot core
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Spring Boot starters
     implementation 'org.springframework.boot:spring-boot-starter-jersey'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-
-    // Spring Security
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-
-    // JWT libraries
-    implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
-    runtimeOnly "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
-    runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
-
-    // Jersey dependencies
     implementation 'org.glassfish.jersey.core:jersey-client:3.1.10'
     implementation 'org.glassfish.jersey.inject:jersey-hk2:3.1.10'
     implementation 'org.glassfish.jersey.connectors:jersey-apache-connector:3.1.10'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
     // Spring Cloud
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
     // API Documentation
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
@@ -90,7 +66,7 @@ dependencies {
 
     // Logging
     implementation 'org.slf4j:slf4j-api:2.0.9'
-    implementation "net.logstash.logback:logstash-logback-encoder:${logbackEncoderVersion}"
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

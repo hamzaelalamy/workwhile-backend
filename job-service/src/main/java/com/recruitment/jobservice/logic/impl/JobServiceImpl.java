@@ -3,6 +3,7 @@ package com.recruitment.jobservice.logic.impl;
 import com.recruitment.jobservice.dataaccess.dao.JobRepository;
 import com.recruitment.jobservice.dataaccess.entities.JobEntity;
 import com.recruitment.jobservice.logic.api.JobService;
+import com.recruitment.jobservice.service.rest.exception.AccessDeniedException;
 import com.recruitment.jobservice.to.JobDTO;
 import com.recruitment.jobservice.to.JobPostingRequest;
 import com.recruitment.jobservice.to.JobSearchCriteria;
@@ -30,7 +31,7 @@ public class JobServiceImpl implements JobService {
 
     /**
      * Create a new job posting
-     * 
+     *
      * @param request The job posting request with all job details
      * @return The newly created job as a DTO
      */
@@ -38,15 +39,15 @@ public class JobServiceImpl implements JobService {
     public JobDTO createJob(JobPostingRequest request) {
         // Validate request
         validateJobRequest(request);
-        
+
         // Map request to entity
         JobEntity jobEntity = mapToEntity(request);
-        
+
         // Set default values
         jobEntity.setPostedDate(LocalDate.now());
         jobEntity.setActive(true);
         jobEntity.setApplicationCount(0);
-        
+
         // Save to database
         JobEntity savedJob = jobRepository.save(jobEntity);
         return mapToDTO(savedJob);
@@ -54,10 +55,10 @@ public class JobServiceImpl implements JobService {
 
     /**
      * Retrieve a job by its ID
-     * 
+     *
      * @param id The ID of the job to retrieve
      * @return The job data as a DTO
-     * @throws JobNotFoundException if no job with the given ID exists
+     * @throws RuntimeException if no job with the given ID exists
      */
     @Override
     @Transactional(readOnly = true)
@@ -69,7 +70,7 @@ public class JobServiceImpl implements JobService {
 
     /**
      * Get a paginated list of all jobs
-     * 
+     *
      * @param page The page number (0-based)
      * @param size The page size
      * @return A list of jobs for the requested page
@@ -85,7 +86,7 @@ public class JobServiceImpl implements JobService {
 
     /**
      * Get all jobs posted by a specific recruiter
-     * 
+     *
      * @param recruiterId The ID of the recruiter
      * @return A list of jobs posted by the recruiter
      */
@@ -95,7 +96,7 @@ public class JobServiceImpl implements JobService {
         if (recruiterId == null || recruiterId.isEmpty()) {
             throw new IllegalArgumentException("Recruiter ID cannot be null or empty");
         }
-        
+
         return jobRepository.findByRecruiterId(recruiterId)
                 .stream()
                 .map(this::mapToDTO)
@@ -104,11 +105,11 @@ public class JobServiceImpl implements JobService {
 
     /**
      * Update an existing job
-     * 
+     *
      * @param id The ID of the job to update
      * @param request The updated job data
      * @return The updated job as a DTO
-     * @throws JobNotFoundException if no job with the given ID exists
+     * @throws RuntimeException if no job with the given ID exists
      */
     @Override
     public JobDTO updateJob(String id, JobPostingRequest request) {
@@ -125,12 +126,11 @@ public class JobServiceImpl implements JobService {
         return mapToDTO(updatedJob);
     }
 
-
     /**
      * Delete a job by its ID
-     * 
+     *
      * @param id The ID of the job to delete
-     * @throws JobNotFoundException if no job with the given ID exists
+     * @throws RuntimeException if no job with the given ID exists
      */
     @Override
     public void deleteJob(String id) {
@@ -142,37 +142,37 @@ public class JobServiceImpl implements JobService {
 
     /**
      * Activate a job (make it visible in searches)
-     * 
+     *
      * @param id The ID of the job to activate
-     * @throws JobNotFoundException if no job with the given ID exists
+     * @throws RuntimeException if no job with the given ID exists
      */
     @Override
     public void activateJob(String id) {
         JobEntity jobEntity = jobRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found with id: " + id));
-        
+
         jobEntity.setActive(true);
         jobRepository.save(jobEntity);
     }
 
     /**
      * Deactivate a job (hide it from searches)
-     * 
+     *
      * @param id The ID of the job to deactivate
-     * @throws JobNotFoundException if no job with the given ID exists
+     * @throws RuntimeException if no job with the given ID exists
      */
     @Override
     public void deactivateJob(String id) {
         JobEntity jobEntity = jobRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found with id: " + id));
-        
+
         jobEntity.setActive(false);
         jobRepository.save(jobEntity);
     }
 
     /**
      * Search for jobs based on various criteria
-     * 
+     *
      * @param criteria The search criteria
      * @return A list of jobs matching the criteria
      */
@@ -180,48 +180,48 @@ public class JobServiceImpl implements JobService {
     @Transactional(readOnly = true)
     public List<JobDTO> searchJobs(JobSearchCriteria criteria) {
         // Start with active jobs unless specified otherwise
-        List<JobEntity> jobs = criteria.isActiveOnly() 
-                ? jobRepository.findByActiveTrue() 
+        List<JobEntity> jobs = criteria.isActiveOnly()
+                ? jobRepository.findByActiveTrue()
                 : jobRepository.findAll();
-        
+
         // Apply filters based on criteria
         if (criteria.getTitle() != null && !criteria.getTitle().isEmpty()) {
             jobs = jobs.stream()
                     .filter(job -> job.getTitle().toLowerCase().contains(criteria.getTitle().toLowerCase()))
                     .collect(Collectors.toList());
         }
-        
+
         if (criteria.getLocation() != null && !criteria.getLocation().isEmpty()) {
             jobs = jobs.stream()
                     .filter(job -> job.getLocation().toLowerCase().contains(criteria.getLocation().toLowerCase()))
                     .collect(Collectors.toList());
         }
-        
+
         if (criteria.getJobType() != null) {
             jobs = jobs.stream()
                     .filter(job -> job.getJobType() == criteria.getJobType())
                     .collect(Collectors.toList());
         }
-        
+
         if (criteria.getWorkplaceType() != null) {
             jobs = jobs.stream()
                     .filter(job -> job.getWorkplaceType() == criteria.getWorkplaceType())
                     .collect(Collectors.toList());
         }
-        
+
         if (criteria.getExperienceLevel() != null) {
             jobs = jobs.stream()
                     .filter(job -> job.getExperienceLevel() == criteria.getExperienceLevel())
                     .collect(Collectors.toList());
         }
-        
+
         if (criteria.getSkill() != null && !criteria.getSkill().isEmpty()) {
             jobs = jobs.stream()
                     .filter(job -> job.getRequirements().stream()
                             .anyMatch(skill -> skill.toLowerCase().contains(criteria.getSkill().toLowerCase())))
                     .collect(Collectors.toList());
         }
-        
+
         if (criteria.getSalaryMinimum() != null && !criteria.getSalaryMinimum().isEmpty()) {
             try {
                 double minSalary = Double.parseDouble(criteria.getSalaryMinimum());
@@ -239,7 +239,7 @@ public class JobServiceImpl implements JobService {
                 // Skip salary filtering if the minimum salary is not a valid number
             }
         }
-        
+
         return jobs.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
@@ -247,22 +247,22 @@ public class JobServiceImpl implements JobService {
 
     /**
      * Increment the application count for a job
-     * 
+     *
      * @param id The ID of the job
-     * @throws JobNotFoundException if no job with the given ID exists
+     * @throws RuntimeException if no job with the given ID exists
      */
     @Override
     public void incrementApplicationCount(String id) {
         JobEntity jobEntity = jobRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found with id: " + id));
-        
+
         jobEntity.setApplicationCount(jobEntity.getApplicationCount() + 1);
         jobRepository.save(jobEntity);
     }
 
     /**
      * Get featured jobs (could be based on various factors)
-     * 
+     *
      * @param limit The maximum number of jobs to return
      * @return A list of featured jobs
      */
@@ -280,7 +280,7 @@ public class JobServiceImpl implements JobService {
 
     /**
      * Get most recently posted jobs
-     * 
+     *
      * @param limit The maximum number of jobs to return
      * @return A list of the most recent jobs
      */
@@ -296,7 +296,7 @@ public class JobServiceImpl implements JobService {
 
     /**
      * Validate job posting request
-     * 
+     *
      * @param request The job posting request to validate
      * @throws IllegalArgumentException if the request is invalid
      */
@@ -304,19 +304,19 @@ public class JobServiceImpl implements JobService {
         if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
             throw new IllegalArgumentException("Job title cannot be empty");
         }
-        
+
         if (request.getDescription() == null || request.getDescription().trim().isEmpty()) {
             throw new IllegalArgumentException("Job description cannot be empty");
         }
-        
+
         if (request.getCompany() == null || request.getCompany().trim().isEmpty()) {
             throw new IllegalArgumentException("Company name cannot be empty");
         }
-        
+
         if (request.getRecruiterId() == null || request.getRecruiterId().trim().isEmpty()) {
             throw new IllegalArgumentException("Recruiter ID cannot be empty");
         }
-        
+
         if (request.getJobType() == null) {
             throw new IllegalArgumentException("Job type must be specified");
         }
@@ -324,7 +324,7 @@ public class JobServiceImpl implements JobService {
 
     /**
      * Map a job posting request to a job entity
-     * 
+     *
      * @param request The request to map
      * @return A new job entity with data from the request
      */
@@ -351,7 +351,7 @@ public class JobServiceImpl implements JobService {
 
     /**
      * Update a job entity with data from a job posting request
-     * 
+     *
      * @param entity The entity to update
      * @param request The request with new data
      */
@@ -375,7 +375,7 @@ public class JobServiceImpl implements JobService {
 
     /**
      * Map a job entity to a job DTO
-     * 
+     *
      * @param entity The entity to map
      * @return A job DTO with data from the entity
      */

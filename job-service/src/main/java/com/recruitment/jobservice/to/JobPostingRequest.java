@@ -1,12 +1,9 @@
-package com.recruitment.jobservice.dataaccess.entities;
+package com.recruitment.jobservice.to;
 
-import com.recruitment.jobservice.to.JobDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,11 +12,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "jobs")
-public class JobEntity {
-
-    @Id
-    private String id;
+public class JobPostingRequest {
 
     private String title;
     private String description;
@@ -33,17 +26,6 @@ public class JobEntity {
     private String salaryMin;
     private String salaryMax;
     private String currency;
-    private LocalDate postedDate;
     private LocalDate expiryDate;
-    private boolean active;
-    private int applicationCount;
-    private List<Benefit> benefits;
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Benefit {
-        private String name;
-        private String description;
-    }
+    private List<JobDTO.Benefit> benefits;
 }
