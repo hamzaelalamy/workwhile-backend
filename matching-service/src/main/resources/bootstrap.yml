@@ -1,6 +1,12 @@
 spring:
-  cloud:
-    config:
-      uri: http://localhost:8888
+  application:
+    name: matching-service
   profiles:
     active: dev
+  cloud:
+    config:
+      uri:  mongodb://localhost:27017/recruitment-matching
+
+eureka:
+  client:
+    enabled: false
