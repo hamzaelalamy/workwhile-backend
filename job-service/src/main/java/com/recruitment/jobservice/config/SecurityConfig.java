@@ -34,16 +34,27 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
+                        // Error and diagnostics endpoints
+                        .requestMatchers("/error/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/v1/test/**").permitAll()
 
-                        // Public Job endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/v1/jobs/featured").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/jobs/recent").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/jobs/search").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/jobs/{id}").permitAll()
+                        // Public Job endpoints - anyone can view jobs
+                        .requestMatchers(HttpMethod.GET, "/v1/jobs").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/jobs/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/jobs/featured").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/jobs/recent").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/jobs/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/jobs/recruiter/{recruiterId}").permitAll()
+
+                        // Secured endpoints - only admin and recruiter can post/edit/delete
+                        .requestMatchers(HttpMethod.POST, "/v1/jobs/create_offer").hasAnyRole("ADMIN", "RECRUITER")
+                        .requestMatchers(HttpMethod.PUT, "/v1/jobs/{id}").hasAnyRole("ADMIN", "RECRUITER")
+                        .requestMatchers(HttpMethod.DELETE, "/v1/jobs/{id}").hasAnyRole("ADMIN", "RECRUITER")
+                        .requestMatchers(HttpMethod.PATCH, "/v1/jobs/{id}/activate").hasAnyRole("ADMIN", "RECRUITER")
+                        .requestMatchers(HttpMethod.PATCH, "/v1/jobs/{id}/deactivate").hasAnyRole("ADMIN", "RECRUITER")
+                        .requestMatchers(HttpMethod.POST, "/v1/jobs/{id}/application").authenticated()
 
                         // All other endpoints require authentication
                         .anyRequest().authenticated()

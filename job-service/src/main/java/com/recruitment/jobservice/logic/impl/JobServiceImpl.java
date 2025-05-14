@@ -47,10 +47,12 @@ public class JobServiceImpl implements JobService {
         jobEntity.setPostedDate(LocalDate.now());
         jobEntity.setActive(true);
         jobEntity.setApplicationCount(0);
+        System.out.println("Hello 123");
 
         // Save to database
         JobEntity savedJob = jobRepository.save(jobEntity);
         return mapToDTO(savedJob);
+
     }
 
     /**

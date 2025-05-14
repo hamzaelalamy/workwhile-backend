@@ -23,6 +23,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
+    // Special admin token for testing in Postman
+    private static final String SPECIAL_ADMIN_TOKEN = "ADMIN_TEST_TOKEN_123456789";
+    private static final String ADMIN_ID = "admin-user-id-123";
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -31,15 +35,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
+        // No auth header, continue with unauthenticated request
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        final String token = authHeader.substring(7);
+
+        // Special admin token check
+        if (SPECIAL_ADMIN_TOKEN.equals(token)) {
+            logger.info("Using special admin token for testing");
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    ADMIN_ID,
+                    null,
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"))
+            );
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Regular JWT token processing
         try {
-            final String jwt = authHeader.substring(7);
-            final String userId = jwtService.extractUserId(jwt);
-            String role = jwtService.extractRole(jwt);
+            final String userId = jwtService.extractUserId(token);
+            String role = jwtService.extractRole(token);
 
             if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -53,6 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             logger.error("JWT Authentication failed: {}", e.getMessage());
+            // Continue with unauthenticated request
         }
 
         filterChain.doFilter(request, response);
