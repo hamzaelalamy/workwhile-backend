@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/jobs")
+@RequestMapping("/api/v1/jobs")
 @RequiredArgsConstructor
 public class JobController {
 
@@ -45,7 +45,7 @@ public class JobController {
         return ResponseEntity.ok(job);
     }
 
-    @PostMapping
+    @PostMapping("/create_offer")
     public ResponseEntity<JobDTO> createJob(@RequestBody JobPostingRequest request, Authentication authentication) {
         // If user is a RECRUITER, ensure they can only create jobs with their own recruiterId
         if (authentication.getAuthorities().stream()

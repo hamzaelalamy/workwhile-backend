@@ -3,7 +3,7 @@ package com.recruitment.jobservice.logic.impl;
 import com.recruitment.jobservice.dataaccess.dao.JobRepository;
 import com.recruitment.jobservice.dataaccess.entities.JobEntity;
 import com.recruitment.jobservice.logic.api.JobService;
-import com.recruitment.jobservice.service.rest.exception.AccessDeniedException;
+import com.recruitment.jobservice.service.rest.exception.ResourceAccessDeniedException;
 import com.recruitment.jobservice.to.JobDTO;
 import com.recruitment.jobservice.to.JobPostingRequest;
 import com.recruitment.jobservice.to.JobSearchCriteria;
@@ -117,8 +117,9 @@ public class JobServiceImpl implements JobService {
         JobEntity jobEntity = jobRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job not found with id: " + id));
 
+        // In JobServiceImpl.java
         if (!jobEntity.getRecruiterId().equals(request.getRecruiterId())) {
-            throw new AccessDeniedException("You can only update your own job postings");
+            throw new ResourceAccessDeniedException("You can only update your own job postings");
         }
 
         updateEntityFromRequest(jobEntity, request);

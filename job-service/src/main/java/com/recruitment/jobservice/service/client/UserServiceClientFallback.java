@@ -9,7 +9,11 @@ public class UserServiceClientFallback implements UserServiceClient {
 
     @Override
     public ResponseEntity<UserDTO> getUserById(String authorizationHeader, String id) {
-        // Basic fallback implementation - return empty user
-        return ResponseEntity.ok(UserDTO.builder().build());
+        // Implement fallback logic - return minimal user information or null
+        UserDTO fallbackUser = new UserDTO();
+        fallbackUser.setId(id);
+        fallbackUser.setEmail("unavailable@example.com");
+        fallbackUser.setFirstName("User Service Unavailable");
+        return ResponseEntity.ok(fallbackUser);
     }
 }
