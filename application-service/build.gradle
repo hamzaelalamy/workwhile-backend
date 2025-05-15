@@ -1,0 +1,95 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.5'  // Keep the version you already have
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.recruitment'  // Changed to match your project structure
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(23)  // Keep Java 23 as in your original file
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    springCloudVersion = "2024.0.1"  // Keep your original Spring Cloud version
+    lombokVersion = "1.18.30"
+    logbackEncoderVersion = "7.4"
+    mapstructVersion = "1.5.5.Final"
+}
+
+dependencies {
+    // Spring Boot core starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // Jersey dependencies (if you need them)
+    implementation 'org.springframework.boot:spring-boot-starter-jersey'
+    implementation 'org.glassfish.jersey.core:jersey-client:3.1.10'
+    implementation 'org.glassfish.jersey.inject:jersey-hk2:3.1.10'
+    implementation 'org.glassfish.jersey.connectors:jersey-apache-connector:3.1.10'
+    
+    // Spring Cloud and Microservices
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    
+    // Security and JWT
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    
+    // API Documentation
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+    
+    // Utilities
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+    
+    // Logging
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation "net.logstash.logback:logstash-logback-encoder:${logbackEncoderVersion}"
+    
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring30x:4.9.3'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// Add a task to print the effective Java version
+task printJavaVersion {
+    doLast {
+        println "Using Java version: ${java.toolchain.languageVersion.get()}"
+        println "Spring Boot plugin version: ${plugins.getPlugin('org.springframework.boot').class.package.implementationVersion}"
+        println "Spring Cloud version: ${springCloudVersion}"
+    }
+}
