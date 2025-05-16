@@ -42,7 +42,7 @@ jwt:
 
 # User service configuration (for Feign client)
 user-service:
-  url: http://localhost:8889
+  url: http://localhost:8888
 
 # Logging
 logging:
