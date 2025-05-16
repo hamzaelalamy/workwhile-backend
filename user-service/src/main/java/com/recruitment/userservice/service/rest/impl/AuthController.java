@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -19,8 +21,23 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        return new ResponseEntity<>(userService.register(request), HttpStatus.CREATED);
+    public ResponseEntity<?> registerUser(@RequestBody RegisterRequestDTO registerRequest) {
+        try {
+            // Log the incoming request
+            logger.info("Registration request received: {}", registerRequest);
+
+            // Process registration
+            AuthResponseDTO response = authService.register(registerRequest);
+
+            // Return response
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            logger.error("Registration error: {}", e.getMessage(), e);
+            HashMap<Object, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            errorResponse.put("error", e.getClass().getSimpleName());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
     }
 
     @PostMapping("/login")
