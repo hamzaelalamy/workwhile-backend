@@ -7,7 +7,6 @@ import com.recruitment.jobservice.to.JobSearchCriteria;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,108 +37,48 @@ public class JobController {
     }
 
     @PostMapping("/create_offer")
-    public ResponseEntity<JobDTO> createJob(@RequestBody JobPostingRequest request, Authentication authentication) {
-        // Set recruiter ID from the authentication
-        String recruiterId = authentication.getName();
-        request.setRecruiterId(recruiterId);
-
+    public ResponseEntity<JobDTO> createJob(@RequestBody JobPostingRequest request) {
+        // Remove authentication requirement
+        // For testing, you can set a default recruiterId or leave it as provided in the request
         return ResponseEntity.status(HttpStatus.CREATED).body(jobService.createJob(request));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<JobDTO> updateJob(
             @PathVariable String id,
-            @RequestBody JobPostingRequest request,
-            Authentication authentication) {
-
-        // Get the authenticated user
-        String currentUserId = authentication.getName();
-
+            @RequestBody JobPostingRequest request) {
         try {
-            // Get job to check ownership
-            JobDTO job = jobService.getJobById(id);
-
-            // Check if user is ADMIN or the owner of the job
-            boolean isAdmin = authentication.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-            if (isAdmin || job.getRecruiterId().equals(currentUserId)) {
-                return ResponseEntity.ok(jobService.updateJob(id, request));
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
+            return ResponseEntity.ok(jobService.updateJob(id, request));
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteJob(@PathVariable String id, Authentication authentication) {
-        // Get the authenticated user
-        String currentUserId = authentication.getName();
-
+    public ResponseEntity<Void> deleteJob(@PathVariable String id) {
         try {
-            // Get job to check ownership
-            JobDTO job = jobService.getJobById(id);
-
-            // Check if user is ADMIN or the owner of the job
-            boolean isAdmin = authentication.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-            if (isAdmin || job.getRecruiterId().equals(currentUserId)) {
-                jobService.deleteJob(id);
-                return ResponseEntity.noContent().build();
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
+            jobService.deleteJob(id);
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @PatchMapping("/{id}/activate")
-    public ResponseEntity<Void> activateJob(@PathVariable String id, Authentication authentication) {
-        // Get the authenticated user
-        String currentUserId = authentication.getName();
-
+    public ResponseEntity<Void> activateJob(@PathVariable String id) {
         try {
-            // Get job to check ownership
-            JobDTO job = jobService.getJobById(id);
-
-            // Check if user is ADMIN or the owner of the job
-            boolean isAdmin = authentication.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-            if (isAdmin || job.getRecruiterId().equals(currentUserId)) {
-                jobService.activateJob(id);
-                return ResponseEntity.ok().build();
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
+            jobService.activateJob(id);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<Void> deactivateJob(@PathVariable String id, Authentication authentication) {
-        // Get the authenticated user
-        String currentUserId = authentication.getName();
-
+    public ResponseEntity<Void> deactivateJob(@PathVariable String id) {
         try {
-            // Get job to check ownership
-            JobDTO job = jobService.getJobById(id);
-
-            // Check if user is ADMIN or the owner of the job
-            boolean isAdmin = authentication.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-            if (isAdmin || job.getRecruiterId().equals(currentUserId)) {
-                jobService.deactivateJob(id);
-                return ResponseEntity.ok().build();
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
+            jobService.deactivateJob(id);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -169,15 +108,8 @@ public class JobController {
     }
 
     @PostMapping("/{id}/application")
-    public ResponseEntity<Void> incrementApplicationCount(
-            @PathVariable String id,
-            Authentication authentication) {
-        // Only authenticated users can increment application count
-        if (authentication != null) {
-            jobService.incrementApplicationCount(id);
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+    public ResponseEntity<Void> incrementApplicationCount(@PathVariable String id) {
+        jobService.incrementApplicationCount(id);
+        return ResponseEntity.ok().build();
     }
 }

@@ -1,10 +1,9 @@
 package com.recruitment.jobservice.config;
 
-import com.recruitment.jobservice.security.JwtAuthenticationFilter;
+import com.recruitment.jobservice.security.JwtAuthenticationFilter;  // Add this import
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -19,14 +18,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final JwtAuthenticationFilter JwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
 
     @Bean
@@ -34,36 +32,18 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Error and diagnostics endpoints
-                        .requestMatchers("/error/**").permitAll()
-                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api/v1/test/**").permitAll()
-
-                        // Public Job endpoints - anyone can view jobs
-                        .requestMatchers(HttpMethod.GET, "/v1/jobs").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/v1/jobs/{id}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/v1/jobs/featured").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/v1/jobs/recent").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/v1/jobs/search").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/v1/jobs/recruiter/{recruiterId}").permitAll()
-
-                        // Secured endpoints - only admin and recruiter can post/edit/delete
-                        .requestMatchers(HttpMethod.POST, "/v1/jobs/create_offer").hasAnyRole("ADMIN", "RECRUITER")
-                        .requestMatchers(HttpMethod.PUT, "/v1/jobs/{id}").hasAnyRole("ADMIN", "RECRUITER")
-                        .requestMatchers(HttpMethod.DELETE, "/v1/jobs/{id}").hasAnyRole("ADMIN", "RECRUITER")
-                        .requestMatchers(HttpMethod.PATCH, "/v1/jobs/{id}/activate").hasAnyRole("ADMIN", "RECRUITER")
-                        .requestMatchers(HttpMethod.PATCH, "/v1/jobs/{id}/deactivate").hasAnyRole("ADMIN", "RECRUITER")
-                        .requestMatchers(HttpMethod.POST, "/v1/jobs/{id}/application").authenticated()
-
-                        // All other endpoints require authentication
+                        .requestMatchers("/actuator/**").permitAll()
+                        // Permit all requests to job endpoints, considering the context path /api
+                        .requestMatchers("/api/v1/jobs/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(JwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
