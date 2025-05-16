@@ -13,16 +13,20 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.Base64;
+import javax.crypto.SecretKey;
 
 @Service
 public class JwtService {
 
+    // This secret key will be ignored - we'll use a generated key instead
     @Value("${jwt.secret}")
     private String secretKey;
 
     @Value("${jwt.expiration}")
     private long jwtExpiration;
+
+    // Static secure key that meets the 256-bit requirement
+    private static final SecretKey KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -71,7 +75,7 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
-        // Use Keys.secretKeyFor to generate a secure key for HS256
-        return Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        // Use the static secure key instead of the property
+        return KEY;
     }
 }
