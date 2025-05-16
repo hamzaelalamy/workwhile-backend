@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -22,10 +23,23 @@ public class ApplicationEntity {
     private String id;
     private String userId;
     private String jobId;
-    private LocalDateTime applicationDate;
-    private ApplicationStatus status;
+
+    // Personal information
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String phoneNumber;
+
+    // Application details
+    private String availability;
+    private String salaryExpectations;
     private String coverLetter;
     private String resumeUrl;
+    private List<String> additionalFiles;
+
+    // Application tracking
+    private LocalDateTime applicationDate;
+    private ApplicationStatus status;
     private String recruiterNotes;
     private LocalDateTime lastUpdated;
 

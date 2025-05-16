@@ -8,7 +8,7 @@ spring:
     active: dev
   data:
     mongodb:
-      uri: mongodb://localhost:27017/application_service
+      uri: mongodb://localhost:27017/recruitment-application
       auto-index-creation: true
 
 server:

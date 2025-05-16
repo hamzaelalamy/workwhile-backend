@@ -1,22 +1,22 @@
 package com.recruitment.applicationservice.controller;
 
+import com.recruitment.applicationservice.controller.request.ApplicationRequest;
+import com.recruitment.applicationservice.to.ApplicationStatusRequest;
 import com.recruitment.applicationservice.dataaccess.entities.ApplicationEntity;
 import com.recruitment.applicationservice.logic.api.ApplicationService;
 import com.recruitment.applicationservice.to.ApplicationDTO;
-import com.recruitment.applicationservice.to.ApplicationRequest;
-import com.recruitment.applicationservice.to.ApplicationStatusRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import jakarta.validation.Valid;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-/**
- * REST controller for application-related operations.
- * Provides endpoints for applying to jobs, getting application lists, and updating application status.
- */
 @RestController
 @RequestMapping("/v1/applications")
 @RequiredArgsConstructor
@@ -24,88 +24,89 @@ public class ApplicationController {
 
     private final ApplicationService applicationService;
 
-    /**
-     * Apply for a job
-     *
-     * @param userId User ID from header
-     * @param request The application request
-     * @return The created application
-     */
     @PostMapping
-    public ResponseEntity<ApplicationDTO> applyForJob(
-            @RequestHeader("user-id") String userId,
-            @Valid @RequestBody ApplicationRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(applicationService.applyForJob(userId, request));
+    public ResponseEntity<ApplicationDTO> createApplication(
+            @RequestHeader(value = "userId", required = false) String userIdHeader,
+            @RequestBody @Valid ApplicationRequest request,
+            Authentication authentication) {
+
+        try {
+            // Get userId from header or authentication
+            String userId = userIdHeader;
+            if ((userId == null || userId.isEmpty()) && authentication != null) {
+                userId = authentication.getName();
+            }
+            if (userId == null || userId.isEmpty()) {
+                userId = "admin-user-id-123"; // Default for testing
+            }
+
+            // Create the application with an empty additional files list
+            ApplicationDTO applicationDTO = applicationService.createApplication(userId, request, new ArrayList<>());
+            return ResponseEntity.status(HttpStatus.CREATED).body(applicationDTO);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Error processing application: " + e.getMessage(), e);
+        }
     }
 
-    /**
-     * Get all applications for the current user
-     *
-     * @param userId User ID from header
-     * @return List of applications submitted by the user
-     */
     @GetMapping("/user")
     public ResponseEntity<List<ApplicationDTO>> getUserApplications(
-            @RequestHeader("user-id") String userId) {
+            @RequestHeader(value = "userId", required = false) String userIdHeader,
+            Authentication authentication) {
+
+        // Get userId from header or authentication
+        String userId = userIdHeader;
+        if ((userId == null || userId.isEmpty()) && authentication != null) {
+            userId = authentication.getName();
+        }
+        if (userId == null || userId.isEmpty()) {
+            userId = "admin-user-id-123";
+        }
+
         return ResponseEntity.ok(applicationService.getUserApplications(userId));
     }
 
-    /**
-     * Get all applications for a specific job (for recruiters)
-     *
-     * @param jobId The job ID
-     * @return List of applications for the job
-     */
     @GetMapping("/job/{jobId}")
-    public ResponseEntity<List<ApplicationDTO>> getJobApplications(
-            @PathVariable String jobId) {
+    public ResponseEntity<List<ApplicationDTO>> getJobApplications(@PathVariable String jobId) {
         return ResponseEntity.ok(applicationService.getJobApplications(jobId));
     }
 
-    /**
-     * Get a specific application by ID
-     *
-     * @param id The application ID
-     * @return The application details
-     */
     @GetMapping("/{id}")
-    public ResponseEntity<ApplicationDTO> getApplicationById(
-            @PathVariable String id) {
+    public ResponseEntity<ApplicationDTO> getApplicationById(@PathVariable String id) {
         return ResponseEntity.ok(applicationService.getApplicationById(id));
     }
 
-    /**
-     * Update the status of an application
-     *
-     * @param id The application ID
-     * @param request The status update request
-     * @return The updated application
-     */
     @PatchMapping("/{id}/status")
     public ResponseEntity<ApplicationDTO> updateApplicationStatus(
             @PathVariable String id,
-            @Valid @RequestBody ApplicationStatusRequest request) {
-
-        ApplicationEntity.ApplicationStatus status =
-                ApplicationEntity.ApplicationStatus.valueOf(request.getStatus());
-
-        return ResponseEntity.ok(
-                applicationService.updateApplicationStatus(id, status, request.getRecruiterNotes())
-        );
+            @RequestBody ApplicationStatusRequest request) {
+        try {
+            ApplicationEntity.ApplicationStatus status = ApplicationEntity.ApplicationStatus.valueOf(request.getStatus());
+            return ResponseEntity.ok(applicationService.updateApplicationStatus(id, status));
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Invalid status value. Valid values are: " +
+                            Arrays.toString(ApplicationEntity.ApplicationStatus.values()));
+        }
     }
 
-    /**
-     * Check if a user has already applied to a job
-     *
-     * @param userId User ID from header
-     * @param jobId The job ID
-     * @return Boolean indicating if the user has already applied
-     */
     @GetMapping("/check")
     public ResponseEntity<Boolean> hasUserAppliedToJob(
-            @RequestHeader("user-id") String userId,
-            @RequestParam String jobId) {
-        return ResponseEntity.ok(applicationService.hasUserAppliedToJob(userId, jobId));
+            @RequestParam(required = false) String userId,
+            @RequestParam String jobId,
+            Authentication authentication) {
+
+        // Get userId from request param or authentication
+        String effectiveUserId = userId;
+        if ((effectiveUserId == null || effectiveUserId.isEmpty()) && authentication != null) {
+            effectiveUserId = authentication.getName();
+        }
+        if (effectiveUserId == null || effectiveUserId.isEmpty()) {
+            effectiveUserId = "admin-user-id-123";
+        }
+
+        return ResponseEntity.ok(applicationService.hasUserAppliedToJob(effectiveUserId, jobId));
     }
 }
