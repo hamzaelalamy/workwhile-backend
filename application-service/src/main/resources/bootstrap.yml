@@ -1,6 +1,38 @@
 spring:
+  application:
+    name: application-service
   cloud:
     config:
       uri: http://localhost:8888
   profiles:
     active: dev
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/recruitment-application
+      auto-index-creation: true
+
+server:
+  port: 8084
+
+# Temporarily disable Eureka client
+eureka:
+  client:
+    enabled: false
+
+# Feign client configuration
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic
+  circuitbreaker:
+    enabled: true
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
