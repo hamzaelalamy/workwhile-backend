@@ -38,7 +38,7 @@ public class JobController {
 
     @PostMapping("/create_offer")
     public ResponseEntity<JobDTO> createJob(@RequestBody JobPostingRequest request) {
-        // Remove authentication requirement
+        // Remove authentication requirement for now since it causes issues with the authentication service
         // For testing, you can set a default recruiterId or leave it as provided in the request
         return ResponseEntity.status(HttpStatus.CREATED).body(jobService.createJob(request));
     }
