@@ -1,6 +1,53 @@
+# Application configuration
 spring:
+  application:
+    name: job-service
+  data:
+  mongodb:
+    uri: mongodb://localhost:27017/recruitment-jobs
+    auto-index-creation: true
+
   cloud:
+    discovery:
+      enabled: false
+    service-registry:
+      auto-registration:
+        enabled: false
+
+# Server configuration
+server:
+  port: 8087
+
+# Eureka Client Configuration - temporarily disabled
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+# Feign configuration
+feign:
+  circuitbreaker:
+    enabled: true
+  client:
     config:
-      uri: http://localhost:8888
-  profiles:
-    active: dev
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+
+# JWT configuration
+jwt:
+  secret: your_secret_key_here_which_should_be_at_least_32_characters_long
+  expiration: 86400000
+
+# User service configuration (for Feign client)
+user-service:
+  url: http://localhost:8888
+
+# Logging
+logging:
+  level:
+    com.recruitment: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.cloud.netflix: DEBUG
