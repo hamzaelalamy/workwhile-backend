@@ -1,18 +1,21 @@
 package com.recruitment.applicationservice.logic.impl;
 
-import com.recruitment.applicationservice.controller.request.ApplicationRequest;
 import com.recruitment.applicationservice.dataaccess.dao.ApplicationRepository;
+import com.recruitment.applicationservice.to.ApplicationDTO;
+import com.recruitment.applicationservice.to.ApplicationRequest;
 import com.recruitment.applicationservice.dataaccess.entities.ApplicationEntity;
 import com.recruitment.applicationservice.dataaccess.entities.ApplicationEntity.ApplicationStatus;
-import com.recruitment.applicationservice.to.ApplicationDTO;
-import com.recruitment.applicationservice.exception.ApplicationNotFoundException;
-import com.recruitment.applicationservice.exception.DuplicateApplicationException;
 import com.recruitment.applicationservice.logic.api.ApplicationService;
+
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,32 +25,36 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final ApplicationRepository applicationRepository;
 
     @Override
+    public List<ApplicationDTO> getAllApplications(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ApplicationEntity> applicationPage = applicationRepository.findAll(pageable);
+        return applicationPage.getContent().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public ApplicationDTO createApplication(String userId, ApplicationRequest request, List<String> additionalFiles) {
-        // Check if the user has already applied to this job
-        if (userId != null && !userId.isEmpty() &&
-                applicationRepository.findByUserIdAndJobId(userId, request.getJobId()).isPresent()) {
-            throw new DuplicateApplicationException("You have already applied to this job");
+        // Check if user already applied to this job
+        Optional<ApplicationEntity> existingApplication = applicationRepository.findByUserIdAndJobId(userId, request.getJobId());
+        if (existingApplication.isPresent()) {
+            throw new IllegalStateException("User has already applied to this job");
         }
 
-        ApplicationEntity application = ApplicationEntity.builder()
-                .userId(userId)
-                .jobId(request.getJobId())
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .availability(request.getAvailability())
-                .salaryExpectations(request.getSalaryExpectations())
-                .coverLetter(request.getCoverLetter())
-                .resumeUrl(request.getResumeUrl())
-                .additionalFiles(additionalFiles)
-                .applicationDate(LocalDateTime.now())
-                .status(ApplicationStatus.PENDING)
-                .lastUpdated(LocalDateTime.now())
-                .build();
+        // Create new application
+        ApplicationEntity entity = new ApplicationEntity();
+        entity.setUserId(userId);
+        entity.setJobId(request.getJobId());
+        entity.setResumeUrl(request.getResumeUrl());
+        entity.setAdditionalFilesUrls(additionalFiles);
+        entity.setStatus(ApplicationStatus.SUBMITTED);
+        entity.setCreatedAt(LocalDateTime.now());
+        entity.setUpdatedAt(LocalDateTime.now());
+        entity.setApplicationDate(LocalDateTime.now());
+        entity.setLastUpdated(LocalDateTime.now());
 
-        ApplicationEntity savedApplication = applicationRepository.save(application);
-        return mapToDTO(savedApplication);
+        ApplicationEntity savedEntity = applicationRepository.save(entity);
+        return mapToDTO(savedEntity);
     }
 
     @Override
@@ -68,19 +75,20 @@ public class ApplicationServiceImpl implements ApplicationService {
     public ApplicationDTO getApplicationById(String id) {
         return applicationRepository.findById(id)
                 .map(this::mapToDTO)
-                .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Application not found with ID: " + id));
     }
 
     @Override
     public ApplicationDTO updateApplicationStatus(String id, ApplicationStatus status) {
-        ApplicationEntity application = applicationRepository.findById(id)
-                .orElseThrow(() -> new ApplicationNotFoundException("Application not found with id: " + id));
+        ApplicationEntity entity = applicationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Application not found with ID: " + id));
 
-        application.setStatus(status);
-        application.setLastUpdated(LocalDateTime.now());
+        entity.setStatus(status);
+        entity.setUpdatedAt(LocalDateTime.now());
+        entity.setLastUpdated(LocalDateTime.now());
 
-        ApplicationEntity updatedApplication = applicationRepository.save(application);
-        return mapToDTO(updatedApplication);
+        ApplicationEntity updatedEntity = applicationRepository.save(entity);
+        return mapToDTO(updatedEntity);
     }
 
     @Override
@@ -99,11 +107,13 @@ public class ApplicationServiceImpl implements ApplicationService {
                 .phoneNumber(entity.getPhoneNumber())
                 .availability(entity.getAvailability())
                 .salaryExpectations(entity.getSalaryExpectations())
-                .coverLetter(entity.getCoverLetter())
                 .resumeUrl(entity.getResumeUrl())
-                .additionalFiles(entity.getAdditionalFiles())
+                .coverLetterUrl(entity.getCoverLetterUrl())
+                .additionalFilesUrls(entity.getAdditionalFilesUrls())
+                .status(entity.getStatus().name())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
                 .applicationDate(entity.getApplicationDate())
-                .status(entity.getStatus())
                 .recruiterNotes(entity.getRecruiterNotes())
                 .lastUpdated(entity.getLastUpdated())
                 .build();

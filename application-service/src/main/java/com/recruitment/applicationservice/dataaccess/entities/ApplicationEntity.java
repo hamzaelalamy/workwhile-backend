@@ -33,9 +33,9 @@ public class ApplicationEntity {
     // Application details
     private String availability;
     private String salaryExpectations;
-    private String coverLetter;
+    private String coverLetterUrl; // Changed from coverLetter to coverLetterUrl for consistency
     private String resumeUrl;
-    private List<String> additionalFiles;
+    private List<String> additionalFilesUrls; // Changed from additionalFiles to additionalFilesUrls for consistency
 
     // Application tracking
     private LocalDateTime applicationDate;
@@ -43,7 +43,11 @@ public class ApplicationEntity {
     private String recruiterNotes;
     private LocalDateTime lastUpdated;
 
+    // Timestamps for creation and update
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
     public enum ApplicationStatus {
-        PENDING, VIEWED, SHORTLISTED, REJECTED, INTERVIEW, HIRED
+        PENDING, VIEWED, SHORTLISTED, REJECTED, INTERVIEW, HIRED, SUBMITTED
     }
 }

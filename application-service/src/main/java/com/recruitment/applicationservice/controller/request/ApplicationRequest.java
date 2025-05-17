@@ -23,6 +23,11 @@ public class ApplicationRequest {
     @Email(message = "Email must be valid")
     private String email;
 
+    private String coverLetterUrl; // Changed from coverLetter for consistency
+
+    @NotBlank(message = "Resume is required")
+    private String resumeUrl;
+
     @NotBlank(message = "Phone number is required")
     private String phoneNumber;
 
@@ -31,5 +36,4 @@ public class ApplicationRequest {
     private String salaryExpectations;
     private String coverLetter;
 
-    private String resumeUrl;
 }
